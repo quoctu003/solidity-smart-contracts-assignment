@@ -1,0 +1,23 @@
+Solidity Smart Contracts Assignment - Automated Test Results
+Executed: 2026-11-10T09:11:46.961Z
+Compiler: 0.8.24+commit.e11b9ed9.Emscripten.clang; optimizer: 200 runs; EVM target: paris
+Network: isolated, in-memory Ganache; ethers 6; no real funds or external RPC
+Compilation: PASS (15 source files)
+
+PASS 01 Storage: initial value, set/get, ValueSet event, zero value
+PASS 02 Greeting: initial greeting, owner update/reset, event, non-owner rejection
+PASS 03 Counter: zero decrement rejection, increments to 100, upper limit, decrement/reset events
+PASS 04 Ownable / ProtectedVault: deposit, access control, ownership transfer, zero-address checks, withdrawal
+PASS 05 SimpleBank: independent deposits, excess/zero withdrawal rejection, partial withdrawal, totals
+PASS 06 Voting: authorization, duplicate/unauthorized votes, invalid index, winner and tie behavior
+PASS 07 MyToken: 18-decimal supply, transfers, approvals, allowance consumption, invalid transfers
+PASS 08 Crowdfunding: successful claim, failed-goal refund, deadlines, double claim/refund rejection
+PASS 09 Lottery: entry fee/manager/minimum checks, winner event and payout, round reset
+PASS 10 TimeLockVault: deposit preserves deadline, beneficiary restrictions, extension and timed withdrawal
+PASS 11 Escrow: delivery, seller refund, both dispute resolutions, roles and state restrictions
+PASS 12 SimpleNFT: mint price, ownership, direct/approved transfers, approval clearing, supply cap, proceeds
+PASS 13 EnglishAuction: minimum bid, pull refund, early/late ending, seller payout, no-bid auction, rounding
+PASS 14 MultisigWallet: deposit, initial approval, threshold execution, duplicate/non-owner checks, failed-execution rollback
+PASS 15 StakingRewards: time-based rewards, rate checkpoints, claim, added stake, unstake, owner checks, pool exhaustion
+
+Summary: 15/15 contract groups passed; 0 failed.
