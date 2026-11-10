@@ -1,117 +1,119 @@
 # Smart Contract Report
 
-**Student:** Đỗ Quốc Tú | **Student ID:** 30219034289
+**Name:** Đỗ Quốc Tú
 
-These summaries describe the implementation and scenarios in `tests/run.cjs`. All 15 automated exercise groups passed. Execution results appear in [AUTOMATED_TEST_RESULTS.txt](AUTOMATED_TEST_RESULTS.txt). Existing Remix/Ganache screenshots cover selected operations in exercises 01–08; manual evidence for exercises 09–15 has not been provided.
+**Student ID:** 30219034289
+
+The contracts were tested on a local Ganache network. All 15 automated test groups passed; the results are in [AUTOMATED_TEST_RESULTS.txt](AUTOMATED_TEST_RESULTS.txt).
 
 ## 01. Storage
 
-- **Function:** Stores an unsigned integer initialized by the constructor and exposes `set` and `get`.
-- **Concepts:** Persistent state, public functions, read-only `view` access, and event emission.
-- **Tests:** Initialize to 42, update to 100 from another account, verify `ValueSet`, and store zero.
-- **Manual evidence:** [01_test.PNG](../screenshots/01_test.PNG) shows `get()` returning 100.
+`Storage` keeps an unsigned integer that can be read with `get()` and changed with `set()`.
+It introduces state variables, `view` functions, and events through `ValueSet`.
+The tests checked the initial value of 42, changed it to 100 from another account, and then stored zero.
+The returned values and the event's sender and value matched the expected results.
 
 ## 02. Greeting
 
-- **Function:** Stores a greeting that the deployer can update or reset to `Hello, World!`.
-- **Concepts:** Strings, constructor ownership, reusable modifiers, access control, and change events.
-- **Tests:** Read the initial greeting, update and reset as owner, inspect the event, and reject both operations from a non-owner.
-- **Manual evidence:** The [update](../screenshots/02_test.PNG), [access error](../screenshots/02_error.PNG), and [reset](../screenshots/02_reset.PNG) are recorded.
+`Greeting` stores a message and lets its owner change it or reset it to `Hello, World!`.
+The `onlyOwner` modifier checks the caller before allowing either change.
+The tests read the initial message, updated it to `GM Ganache`, checked the change event, and reset it.
+Both update and reset calls from a different account were rejected.
 
 ## 03. Counter
 
-- **Function:** Increments, decrements, and resets a counter restricted to the range 0–100.
-- **Concepts:** Constants, unsigned arithmetic, `require` guards, boundary conditions, and operation events.
-- **Tests:** Reject decrement at zero; increment to 100; reject the next increment; decrement to 99 and reset to zero.
-- **Manual evidence:** [03_error-zero.PNG](../screenshots/03_error-zero.PNG) shows the lower-bound error; the upper-bound case is covered by automation.
+`Counter` supports increment, decrement, and reset operations within the range 0–100.
+The `require` checks prevent the value from going below zero or above the maximum.
+The tests rejected decrement at zero, incremented to 100, and rejected one more increment.
+Decrementing to 99 and resetting to zero also produced the expected values and events.
 
 ## 04a. Ownable
 
-- **Function:** Assigns ownership to the deployer and allows the current owner to transfer it.
-- **Concepts:** The `onlyOwner` modifier, nonzero-address validation, inheritance, and `OwnershipTransferred` events.
-- **Tests:** Through `ProtectedVault`, verify the initial owner, transfer ownership, inspect the event, and reject a zero owner and old-owner withdrawal.
-- **Manual evidence:** [04_owner_changed.PNG](../screenshots/04_owner_changed.PNG) shows the ownership change on the derived contract.
+`Ownable` assigns ownership to the deploying account and allows that owner to transfer it.
+Its `onlyOwner` modifier can be reused by contracts that inherit from it.
+The tests used `ProtectedVault` to check the initial owner, transfer ownership, and inspect `OwnershipTransferred`.
+A zero-address owner was rejected, and the previous owner could no longer withdraw after the transfer.
 
 ## 04b. ProtectedVault
 
-- **Function:** Accepts ETH deposits from any account and permits only its owner to withdraw to a chosen recipient.
-- **Concepts:** Inherited access control, payable functions, low-level ETH transfers, and a reentrancy guard.
-- **Tests:** Deposit 1 ETH; reject zero deposits, non-owner withdrawals, and a zero recipient; transfer ownership and withdraw the full balance.
-- **Manual evidence:** [04_test.PNG](../screenshots/04_test.PNG) shows a partial withdrawal by the new owner; the automated test separately empties the vault.
+`ProtectedVault` inherits `Ownable`, accepts ETH deposits, and restricts withdrawals to the owner.
+It uses payable functions, a low-level ETH transfer, and a reentrancy lock during withdrawal.
+The tests deposited 1 ETH, transferred ownership, and let the new owner withdraw the full amount.
+Zero deposits, non-owner withdrawals, and withdrawals to the zero address were rejected; the final balance was zero.
 
 ## 05. SimpleBank
 
-- **Function:** Maintains individual ETH balances and lets each depositor withdraw their own funds.
-- **Concepts:** Address mappings and Checks-Effects-Interactions: update the ledger before transferring ETH.
-- **Tests:** Deposit 2/3 ETH from separate accounts; reject zero deposits and zero/excess withdrawals; withdraw 1 ETH and verify a 4 ETH bank total.
-- **Manual evidence:** [05_deposit.PNG](../screenshots/05_deposit.PNG) and [05_error.PNG](../screenshots/05_error.PNG) show deposits and an invalid withdrawal, with amounts separate from the automated scenario.
+`SimpleBank` records each account's deposits and lets users withdraw from their own balance.
+It uses a mapping and updates the balance before sending ETH, following Checks-Effects-Interactions.
+The tests deposited 2 ETH and 3 ETH from two accounts, then withdrew 1 ETH from the first account.
+The remaining balances were correct, the bank held 4 ETH, and zero or excessive withdrawals were rejected.
 
 ## 06. Voting
 
-- **Function:** Lets a chairperson authorize voters, records one vote per authorized account, and reports the winner.
-- **Concepts:** Structs, arrays, mappings, role checks, and tie-breaking in favor of the earliest candidate.
-- **Tests:** Check authorization, invalid indices, duplicate/unauthorized votes, a tied result, and Bob winning with two votes.
-- **Manual evidence:** [06_test.PNG](../screenshots/06_test.PNG) shows a separately configured election returning `Tu` as the winner.
+`Voting` lets the chairperson authorize accounts, with each authorized account allowed one vote.
+Structs and mappings store candidates and voters; a tie is resolved in favor of the first candidate in the list.
+The tests checked a tied result and then a result where Bob won with two votes.
+They also rejected unauthorized voters, repeated votes, invalid candidate indices, and authorization by a non-chairperson.
 
 ## 07. MyToken
 
-- **Function:** Implements token supply, balances, transfers, approvals, and delegated transfers with 18 decimal places.
-- **Concepts:** Core ERC-20 operations, nested allowance mappings, base units, and `Transfer`/`Approval` events.
-- **Tests:** Create 1,000 tokens, transfer 500, approve and spend 200, verify balances/exhausted allowance, and reject invalid transfers.
-- **Manual evidence:** [07_test.PNG](../screenshots/07_test.PNG) shows balance queries; the full allowance workflow is verified by automation.
+`MyToken` implements the main ERC-20 operations: transfers, approvals, and transfers made by an approved spender.
+Balances and allowances use mappings, with 18 decimal places per token.
+The tests created 1,000 tokens, transferred 500, and approved another account to spend 200 of them.
+Balances and the remaining allowance were checked; spending beyond the allowance, sending to zero, and overspending were rejected.
 
 ## 08. Crowdfunding
 
-- **Function:** Collects ETH until a deadline, then permits an owner claim if the goal is met or contributor refunds otherwise.
-- **Concepts:** Timestamp conditions, contribution accounting, exclusive settlement paths, and effects before interactions.
-- **Tests:** Run successful/failed campaigns; reject premature settlement, late contributions, unauthorized/double claims, and repeat refunds; verify historical `raised`.
-- **Manual evidence:** [08_test.PNG](../screenshots/08_test.PNG) shows a contribution; deadline settlement and refunds are covered by automation.
+`Crowdfunding` accepts contributions until a deadline, then allows an owner claim or contributor refunds depending on the goal.
+It uses timestamps and contribution mappings, with separate conditions for successful and failed campaigns.
+The tests covered both outcomes, including an owner claim and a contributor refund after the deadline.
+Early settlement, late contributions, unauthorized claims, and repeated claims or refunds were rejected.
 
 ## 09. Lottery
 
-- **Function:** Collects a fixed entry fee and lets the manager award the pot after reaching the minimum player count.
-- **Concepts:** Payable address arrays, role restrictions, round reset, and previous-block-hash pseudorandomness.
-- **Tests:** Reject manager entry, incorrect fees, insufficient players, and unauthorized selection; verify a valid winner, 0.05 ETH payout, reset, and new-round entry.
-- **Limitation:** Block-hash selection is manipulable; a winner rejecting ETH prevents settlement. No manual screenshots are supplied.
+`Lottery` collects a fixed entry fee and lets the manager select a winner once enough players have joined.
+It stores players in an array and selects an index using the previous block hash, which is not secure randomness.
+The tests entered five players, checked the 0.05 ETH prize and winner event, and confirmed that a new round could start.
+They also rejected the wrong fee, manager entry, selection with too few players, and selection by another account.
 
 ## 10. TimeLockVault
 
-- **Function:** Holds ETH until an unlock timestamp; only the beneficiary can extend the lock or withdraw.
-- **Concepts:** Time-based access, payable deposits, beneficiary modifiers, and extensions added to the existing deadline.
-- **Tests:** Verify deposits preserve the deadline; reject unauthorized/early withdrawal; extend the lock, advance time, withdraw, and reject an empty-vault withdrawal.
-- **Manual evidence:** Not supplied; automation advances the local chain clock to test expiry.
+`TimeLockVault` holds ETH until an unlock time, after which only the beneficiary can withdraw it.
+The beneficiary can extend the existing deadline, while new deposits leave that deadline unchanged.
+The tests checked these rules, advanced the local chain time, and withdrew the balance after expiry.
+Early withdrawals, withdrawals by another account, and a second withdrawal from the empty vault were rejected.
 
 ## 11. Escrow
 
-- **Function:** Holds a buyer's payment for a seller and allows an independent arbiter to settle disputes.
-- **Concepts:** An enum state machine, distinct participant roles, guarded transitions, and state updates before payment.
-- **Tests:** On separate deployments, confirm delivery, refund through the seller, and resolve disputes to either party; reject invalid roles and transitions.
-- **Implementation detail:** Constructor funding starts in `AwaitingDelivery`; `AwaitingPayment` is not entered. No manual screenshots are supplied.
+`Escrow` holds the buyer's payment until delivery is confirmed, a refund is agreed, or the arbiter resolves a dispute.
+An enum tracks the state, and modifiers restrict each action to the correct participant and state.
+Separate deployments tested delivery confirmation, a seller-issued refund, and dispute decisions in favor of either party.
+Incorrect roles and state transitions were rejected, and completed settlements left no ETH in escrow.
 
 ## 12. SimpleNFT
 
-- **Function:** Mints up to 100 tokens at 0.01 ETH each, supports transfers/approvals, and lets the owner withdraw proceeds.
-- **Concepts:** Token identifiers, ownership/balance mappings, delegated transfers, approval clearing, and a supply cap; this is not full ERC-721.
-- **Tests:** Mint, transfer directly/through approval, reject incorrect prices and unauthorized calls, verify approval clearing, reach the 100-token cap, and withdraw proceeds.
-- **Manual evidence:** Not supplied; minting, permissions, supply limits, and proceeds are checked automatically.
+`SimpleNFT` mints up to 100 tokens at 0.01 ETH each and supports direct transfers and transfers by an approved account.
+It uses ownership, balance, and approval mappings; its custom interface does not implement the full ERC-721 standard.
+The tests minted tokens, transferred them through both methods, checked that approvals were cleared, and withdrew the proceeds.
+Incorrect payments, unauthorized actions, and minting beyond the 100-token limit were rejected.
 
 ## 13. EnglishAuction
 
-- **Function:** Accepts increasing bids until a deadline, supports separate refunds for losing bids, and pays the seller on settlement.
-- **Concepts:** A minimum 5% increase rounded upward, pull payments, deadline guards, and one-time settlement.
-- **Tests:** Accept 0.11/0.12 ETH bids, reject 0.121 ETH, withdraw an outbid amount, check early/late actions, settle, and test no-bid/tiny-value auctions.
-- **Implementation detail:** The first bid must also exceed the starting price by 5%; no manual screenshots are supplied.
+`EnglishAuction` accepts bids until a deadline and pays the seller when the auction ends.
+Each bid must increase the reference price by at least 5%, rounded upward; outbid users withdraw their refunds separately.
+The tests accepted bids of 0.11 and 0.12 ETH, rejected 0.121 ETH, checked a refund, and settled the auction.
+They also covered early ending, late bids, repeated ending, an auction with no bids, and rounding for small amounts.
 
 ## 14. MultisigWallet
 
-- **Function:** Stores ETH and executes a proposed transfer automatically when enough distinct owners confirm it.
-- **Concepts:** Owner membership, transaction structs, nested confirmations, threshold authorization, and rollback on failure.
-- **Tests:** Deposit 2 ETH, submit with one confirmation, execute at two, reject duplicate/non-owner calls, and verify failed-execution rollback before funding and retrying.
-- **Implementation detail:** Submission counts as the first confirmation; `executed` is set before payment. No manual screenshots are supplied.
+`MultisigWallet` sends ETH only after a transaction receives enough confirmations from different owners.
+Submitting a transaction counts as the first confirmation, and reaching the threshold triggers execution automatically.
+The tests funded the wallet, executed a transfer with two confirmations, and rejected duplicate or non-owner calls.
+A failed transfer rolled back its final confirmation; adding funds and confirming again allowed it to complete.
 
 ## 15. StakingRewards
 
-- **Function:** Accepts ETH stakes, accrues rewards, supports claims/full unstaking, and lets the owner fund rewards and change the rate.
-- **Concepts:** Reward wei per ETH per second, accumulated-rate checkpoints, fractional remainders, and reentrancy protection.
-- **Tests:** Stake 1/2 ETH, verify timed rewards across a rate change, claim, add stake, unstake, reject invalid roles/repeat unstaking, and check pool exhaustion.
-- **Implementation detail:** Rate changes preserve prior earnings; insufficient reward funding also blocks unstaking. No manual screenshots are supplied.
+`StakingRewards` accepts ETH stakes and calculates rewards from the amount staked, elapsed time, and reward rate.
+It keeps earlier earnings when the owner changes the rate and separates reward funding from staked principal.
+The tests checked rewards across a rate change, claimed rewards, added to a stake, and withdrew another account's stake.
+Unauthorized owner actions and repeated unstaking were rejected; an empty reward pool blocked both claiming and unstaking.
